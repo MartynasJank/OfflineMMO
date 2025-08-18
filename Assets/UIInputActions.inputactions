@@ -1,0 +1,44 @@
+{
+    "name": "UIInputActions",
+    "maps": [
+        {
+            "name": "UI",
+            "id": "1e6bb5e8-4447-4fb5-9f00-64438e2c9327",
+            "actions": [
+                {"name": "Navigate", "type": "Value", "id": "c1d1a8a7-2a3c-4b5a-b5d3-1c7f1de12345", "expectedControlType": "Vector2"},
+                {"name": "Submit", "type": "Button", "id": "4e9bb0c5-2cf3-4f36-8d67-7564df631111"},
+                {"name": "Cancel", "type": "Button", "id": "8a7f5e3d-4b32-44d9-9ddf-0f4b7a219222"},
+                {"name": "Point", "type": "PassThrough", "id": "197fa5cb-6d4b-4200-93f1-55a1b6733333", "expectedControlType": "Vector2"},
+                {"name": "Click", "type": "PassThrough", "id": "9d0ee1fd-6d5a-4bcf-8ec6-0cf0b6bf4444", "expectedControlType": "Button"},
+                {"name": "RightClick", "type": "PassThrough", "id": "0cf1eae1-9d5e-45e7-9ddc-1cbb99a55555", "expectedControlType": "Button"},
+                {"name": "MiddleClick", "type": "PassThrough", "id": "5dcfa447-2582-4d02-86fe-2afccaa66666", "expectedControlType": "Button"},
+                {"name": "ScrollWheel", "type": "PassThrough", "id": "4f168abf-1682-4af5-b11e-8d2f1d777777", "expectedControlType": "Vector2"}
+            ],
+            "bindings": [
+                {"name": "WASD", "id": "bdc274a4-a2b5-4e1d-8dd3-6f6d88888888", "path": "2DVector", "action": "Navigate", "isComposite": true},
+                {"name": "up", "id": "d0d963f8-1f32-4a28-9ee3-8a7d99999999", "path": "<Keyboard>/w", "action": "Navigate", "isPartOfComposite": true},
+                {"name": "down", "id": "06f6371f-f6a1-4c96-8cbe-c0acaaaaaaa1", "path": "<Keyboard>/s", "action": "Navigate", "isPartOfComposite": true},
+                {"name": "left", "id": "861bde54-26bb-4f69-b249-7d5abbbbbbbb", "path": "<Keyboard>/a", "action": "Navigate", "isPartOfComposite": true},
+                {"name": "right", "id": "74ce8f11-841b-4f1e-ae8b-3ed2cccccccc", "path": "<Keyboard>/d", "action": "Navigate", "isPartOfComposite": true},
+                {"id": "2ed16205-8651-4f35-82cf-ea89dddddddd", "path": "<Keyboard>/enter", "action": "Submit"},
+                {"id": "4b2a3412-9d77-4d42-a09e-f8bfeeeeeeee", "path": "<Keyboard>/escape", "action": "Cancel"},
+                {"id": "70341cae-3581-4b34-8d75-8cff00000000", "path": "<Mouse>/position", "action": "Point"},
+                {"id": "cb3d2eea-5653-44e2-857c-39f7f1111111", "path": "<Mouse>/leftButton", "action": "Click"},
+                {"id": "53a30ff9-3bd8-4a78-8d48-76f812222222", "path": "<Mouse>/rightButton", "action": "RightClick"},
+                {"id": "ad6869d0-9639-4b0c-9cb5-990e43333333", "path": "<Mouse>/middleButton", "action": "MiddleClick"},
+                {"id": "d4887e6f-c4da-4c36-896d-7a7f24444444", "path": "<Mouse>/scroll", "action": "ScrollWheel"},
+                {"name": "Gamepad", "id": "42c67f5f-882b-493f-8c97-d09555555555", "path": "2DVector", "action": "Navigate", "isComposite": true},
+                {"name": "up", "id": "141441b3-8b6c-47e5-8338-6d8e66666666", "path": "<Gamepad>/leftStick/up", "action": "Navigate", "isPartOfComposite": true},
+                {"name": "down", "id": "84bb546a-8d7c-47ba-84e4-fd8777777777", "path": "<Gamepad>/leftStick/down", "action": "Navigate", "isPartOfComposite": true},
+                {"name": "left", "id": "5ec1bd56-5f3f-4da9-9122-a04888888888", "path": "<Gamepad>/leftStick/left", "action": "Navigate", "isPartOfComposite": true},
+                {"name": "right", "id": "02b7859d-5043-4744-af4d-421599999999", "path": "<Gamepad>/leftStick/right", "action": "Navigate", "isPartOfComposite": true},
+                {"id": "dd957f9e-0a6b-4a7c-9a76-6606aaaaaaab", "path": "<Gamepad>/buttonSouth", "action": "Submit"},
+                {"id": "a1cd82bc-7fe2-4f91-aa4c-0d65bbbbbbbb", "path": "<Gamepad>/buttonEast", "action": "Cancel"}
+            ]
+        }
+    ],
+    "controlSchemes": [
+        {"name": "Keyboard&Mouse", "bindingGroup": "Keyboard&Mouse", "devices": ["<Keyboard>", "<Mouse>"]},
+        {"name": "Gamepad", "bindingGroup": "Gamepad", "devices": ["<Gamepad>"]}
+    ]
+}
