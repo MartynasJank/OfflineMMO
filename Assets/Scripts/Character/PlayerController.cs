@@ -4,72 +4,115 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(CharacterController))]
 public class PlayerController : MonoBehaviour
 {
+    [System.Serializable]
+    public class KeyBindings
+    {
+        public Key forward = Key.W;
+        public Key backward = Key.S;
+        public Key left = Key.A;
+        public Key right = Key.D;
+        public Key jump = Key.Space;
+        public Key sprint = Key.LeftShift;
+        public Key crouch = Key.LeftCtrl;
+        public Key cameraToggle = Key.V;
+    }
+
+    public KeyBindings keys = new KeyBindings();
+
     public float speed = 5f;
-    public float gravity = -9.81f;
-    public Transform cam;
-
-    public float jumpHeight = 2f;
-    private bool isGrounded;
-
     public float sprintMultiplier = 1.5f;
-    private bool isSprinting;
+    public float crouchSpeedMultiplier = 0.5f;
+    public float acceleration = 10f;
+    public float deceleration = 10f;
+    public float gravity = -9.81f;
+    public float jumpHeight = 2f;
+    public Transform cam;
+    public OrbitCamera orbitCamera;
 
     private CharacterController controller;
-    private Vector3 velocity;
-    private Vector2 moveInput;
-
-    private PlayerInputActions inputActions;
-
-    private bool isRightMouseHeld;
+    private Vector3 currentVelocity;
+    private Vector3 verticalVelocity;
+    private bool isGrounded;
+    private bool isCrouching;
+    private float originalHeight;
+    private Vector3 originalCenter;
 
     void Awake()
     {
         controller = GetComponent<CharacterController>();
-        inputActions = new PlayerInputActions();
-        inputActions.Player.Move.performed += ctx => moveInput = ctx.ReadValue<Vector2>();
-        inputActions.Player.Move.canceled += _ => moveInput = Vector2.zero;
+        originalHeight = controller.height;
+        originalCenter = controller.center;
 
-        inputActions.Camera.LookButton.performed += _ => isRightMouseHeld = true;
-        inputActions.Camera.LookButton.canceled += _ => isRightMouseHeld = false;
-
-        inputActions.Player.Jump.performed += _ => Jump();
-
-        inputActions.Player.Sprint.performed += _ => isSprinting = true;
-        inputActions.Player.Sprint.canceled += _ => isSprinting = false;
+        if (orbitCamera == null)
+            orbitCamera = FindObjectOfType<OrbitCamera>();
     }
-
-    void OnEnable() => inputActions.Enable();
-    void OnDisable() => inputActions.Disable();
 
     void Update()
     {
-        if (isRightMouseHeld && moveInput.y > 0)
+        var keyboard = Keyboard.current;
+        if (keyboard == null) return;
+
+        Vector2 moveInput = GetMovementInput(keyboard);
+
+        if (Mouse.current != null && Mouse.current.rightButton.isPressed && moveInput.y > 0)
         {
             Vector3 camForward = cam.forward;
-            camForward.y = 0; // Flatten to horizontal plane
+            camForward.y = 0;
             transform.rotation = Quaternion.LookRotation(camForward);
         }
 
-        isGrounded = controller.isGrounded;
-        if (isGrounded && velocity.y < 0)
+        bool hasInput = moveInput.sqrMagnitude > 0.01f;
+        bool isSprinting = keyboard[keys.sprint].isPressed && moveInput.y > 0;
+        float currentSpeed = speed * (isSprinting ? sprintMultiplier : 1f) * (isCrouching ? crouchSpeedMultiplier : 1f);
+        Vector3 moveDirection = transform.right * moveInput.x + transform.forward * moveInput.y;
+        Vector3 targetVelocity = moveDirection * currentSpeed;
+
+        float accelRate = hasInput ? acceleration : deceleration;
+        currentVelocity = Vector3.MoveTowards(currentVelocity, targetVelocity, accelRate * Time.deltaTime);
+
+        if (keyboard[keys.jump].wasPressedThisFrame && isGrounded)
         {
-            velocity.y = -2f; // Small downward force to stick to ground
+            verticalVelocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
         }
 
-        velocity.y += gravity * Time.deltaTime;
-        controller.Move(velocity * Time.deltaTime);
+        if (keyboard[keys.crouch].wasPressedThisFrame)
+        {
+            ToggleCrouch();
+        }
 
-        bool shouldSprint = isSprinting && moveInput.y > 0;
-        float currentSpeed = shouldSprint ? speed * sprintMultiplier : speed;
-        Vector3 move = transform.right * moveInput.x + transform.forward * moveInput.y;
-        controller.Move(move * currentSpeed * Time.deltaTime);
+        if (keyboard[keys.cameraToggle].wasPressedThisFrame && orbitCamera != null)
+        {
+            orbitCamera.TogglePerspective();
+        }
+
+        isGrounded = controller.isGrounded;
+        if (isGrounded && verticalVelocity.y < 0)
+        {
+            verticalVelocity.y = -2f;
+        }
+
+        verticalVelocity.y += gravity * Time.deltaTime;
+
+        Vector3 total = currentVelocity;
+        total.y = verticalVelocity.y;
+        controller.Move(total * Time.deltaTime);
     }
 
-    void Jump()
+    Vector2 GetMovementInput(Keyboard keyboard)
     {
-        if (isGrounded)
-        {
-            velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
-        }
+        Vector2 input = Vector2.zero;
+        if (keyboard[keys.forward].isPressed) input.y += 1f;
+        if (keyboard[keys.backward].isPressed) input.y -= 1f;
+        if (keyboard[keys.left].isPressed) input.x -= 1f;
+        if (keyboard[keys.right].isPressed) input.x += 1f;
+        return Vector2.ClampMagnitude(input, 1f);
+    }
+
+    void ToggleCrouch()
+    {
+        isCrouching = !isCrouching;
+        controller.height = isCrouching ? originalHeight * 0.5f : originalHeight;
+        controller.center = isCrouching ? originalCenter * 0.5f : originalCenter;
     }
 }
+
