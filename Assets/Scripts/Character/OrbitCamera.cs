@@ -10,10 +10,14 @@ public class OrbitCamera : MonoBehaviour
     public float ySpeed = 80f;
     public float yMinLimit = -20f;
     public float yMaxLimit = 80f;
+    public float firstPersonHeight = 1.6f;
+    public float collisionRadius = 0.2f;
+    public LayerMask collisionLayers = ~0;
 
     private float x = 0f;
     private float y = 0f;
     private Vector2 lookInput;
+    private bool isFirstPerson;
 
     private PlayerInputActions inputActions;
 
@@ -27,17 +31,20 @@ public class OrbitCamera : MonoBehaviour
     void OnEnable() => inputActions.Enable();
     void OnDisable() => inputActions.Disable();
 
+    public void TogglePerspective()
+    {
+        isFirstPerson = !isFirstPerson;
+    }
+
     void LateUpdate()
     {
-        // Zoom with mouse scroll wheel using Input System directly
-        if (Mouse.current != null)
+        if (!isFirstPerson && Mouse.current != null)
         {
             float scrollValue = Mouse.current.scroll.ReadValue().y;
-            distance -= scrollValue * 0.5f; // Adjust zoom speed
-            distance = Mathf.Clamp(distance, 2f, 20f); // Min and max zoom distance
+            distance -= scrollValue * 0.5f;
+            distance = Mathf.Clamp(distance, 2f, 20f);
         }
 
-        // Only rotate camera if RMB is held
         if (Mouse.current != null && Mouse.current.rightButton.isPressed)
         {
             x += lookInput.x * xSpeed * Time.deltaTime;
@@ -48,11 +55,28 @@ public class OrbitCamera : MonoBehaviour
         Quaternion rotation = Quaternion.Euler(y, x, 0);
         transform.rotation = rotation;
 
-        Vector3 negDistance = new Vector3(0.0f, 0.0f, -distance);
-        Vector3 position = rotation * negDistance + target.position;
-        cameraTransform.position = position;
+        Vector3 targetPos = target.position + Vector3.up * firstPersonHeight;
 
-        cameraTransform.LookAt(target.position + Vector3.up * 1.5f);
+        if (isFirstPerson)
+        {
+            cameraTransform.position = targetPos;
+            cameraTransform.rotation = rotation;
+        }
+        else
+        {
+            Vector3 negDistance = new Vector3(0.0f, 0.0f, -distance);
+            Vector3 desiredPosition = rotation * negDistance + targetPos;
+
+            Vector3 direction = desiredPosition - targetPos;
+            float maxDistance = direction.magnitude;
+            if (Physics.SphereCast(targetPos, collisionRadius, direction.normalized, out RaycastHit hit, maxDistance, collisionLayers))
+            {
+                desiredPosition = targetPos + direction.normalized * (hit.distance - collisionRadius);
+            }
+
+            cameraTransform.position = desiredPosition;
+            cameraTransform.LookAt(targetPos);
+        }
     }
-
 }
+
